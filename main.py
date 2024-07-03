@@ -11,7 +11,7 @@ reflecteurB = [24, 17, 20, 7, 16, 18, 11, 3, 15, 23, 13, 6, 14, 10, 12, 8, 4, 1,
 reflecteurC = [5, 21, 15, 9, 8, 0, 14, 24, 4, 3, 17, 25, 23, 22, 6, 2, 19, 10, 20, 16, 18, 1, 13, 12, 7, 11]
 
 class Rotor:
-    def __init__(self, nom : str, permutations : list, encoches : list, position = 0 : int):
+    def __init__(self, nom : str, permutations : list, encoches : list, position = 0):
         self.nom = nom
         self.permutations = permutations
         self.encoches = encoches
@@ -38,7 +38,7 @@ class Enigma:
         self.reflecteur = reflecteur
         self.permutation = [i for i in range (26)]
     
-    def rotors(self, alignements_rotors : str):
+    def choix_rotors(self, alignements_rotors : str):
         rotors = alignements_rotors.split("-")
         assert len(rotors) == 3
         for rotor in rotors:
@@ -49,7 +49,8 @@ class Enigma:
     
     def changer_position_rotor(self, rotor, position):
         assert rotor in [0, 1, 2] # vérifier que le rotor est bien installé dans la machine
-        self.rotors[rotor]
+        self.rotors[rotor].position = position
+        return
     
     def permuter_lettre(self, lettre):
         return nombre_en_lettre(self.permutation[lettre_en_nombre(lettre)])
@@ -59,6 +60,7 @@ class Enigma:
         b = lettre_en_nombre(lettre_b)
         self.permutation[a] = b
         self.permutation[b] = a
+        return
 
 
 def lettre_en_nombre(lettre : str) -> int:
@@ -72,25 +74,51 @@ def nombre_en_lettre(nombre : int) -> str:
 def traduire_lettre(enigma : Enigma, lettre : str) -> str:
     tourner = enigma.rotors[0].tourner_rotor()
     if tourner:
-        tourner = enigma.rotor[1].tourner_rotor()
+        tourner = enigma.rotors[1].tourner_rotor()
     if tourner:
-        enigma.rotor[2].tourner_rotor()
+        enigma.rotors[2].tourner_rotor()
     # La lettre pase dans les permutations
     lettre = enigma.permuter_lettre(lettre)
+    print("Première permutation :", lettre)
     # La lettre permutée passe dans les rotors
-    lettre = enigma.rotor[0].permuter_lettre(lettre)
-    lettre = enigma.rotor[1].permuter_lettre(lettre)
-    lettre = enigma.rotor[2].permuter_lettre(lettre)
+    lettre = enigma.rotors[0].permuter_lettre(lettre)
+    print("Premier rotor :", lettre)
+    lettre = enigma.rotors[1].permuter_lettre(lettre)
+    print("Deuxième rotor :", lettre)
+    lettre = enigma.rotors[2].permuter_lettre(lettre)
+    print("Troisième rotor :", lettre)
     # La lettre modifiée par les rotors passe dans le réflecteur
     lettre = nombre_en_lettre(enigma.reflecteur[lettre_en_nombre(lettre)])
+    print("Réflecteur :", lettre)
     # La lettre passe dans les rotors à l'envers
-    lettre = enigma.rotor[2].permuter_lettre_inverse(lettre)
-    lettre = enigma.rotor[1].permuter_lettre_inverse(lettre)
-    lettre = enigma.rotor[0].permuter_lettre_inverse(lettre)
+    lettre = enigma.rotors[2].permuter_lettre_inverse(lettre)
+    print("Troisième rotor inverse :", lettre)
+    lettre = enigma.rotors[1].permuter_lettre_inverse(lettre)
+    print("Deuxième rotor inverse :", lettre)
+    lettre = enigma.rotors[0].permuter_lettre_inverse(lettre)
+    print("Premier rotor inverse :", lettre)
     # La lettre repasse dans les permutations
     lettre = enigma.permuter_lettre(lettre)
+    print("Dernière permutation :", lettre)
     return lettre
     
+def initialiser_enigma(enigma : Enigma, rotors : str, positions : str, liste_permutations = []):
+    liste_positions = positions.split("-")
+    for permutation in liste_permutations:
+        enigma.ajouter_permutation(permutation[0], permutation[1])
+    enigma.choix_rotors(rotors)
+    for i in range(3):
+        enigma.changer_position_rotor(i, int(liste_positions[i]))
+    return
+    
+    
 
-enigma1 = Enigma()
+enigma1 = Enigma(reflecteurB)
 liste_rotor = [Rotor("I", rotorI, [16]), Rotor("II", rotorII, [4]), Rotor("III", rotorIII, [21]), Rotor("IV", rotorIV, [9]), Rotor("V", rotorV, [25]), Rotor("VI", rotorVI, [25, 12]), Rotor("VII", rotorVII, [25, 12]), Rotor("VIII", rotorVIII, [25, 12])]
+rotors1 = input("Choisissez les rotors (I-VI-III) : ")
+positions1 = input("Choisissez les positions des rotors (10-15-23) : ")
+initialiser_enigma(enigma1, rotors1, positions1, ["AC", "BE"])
+lettre1 = input("Entrez une lettre à chiffrer : ")
+traduire_lettre(enigma1, lettre1)
+
+

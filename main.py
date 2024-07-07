@@ -1,5 +1,5 @@
 rotorI = [4, 10, 12, 5, 11, 6, 3, 16, 21, 25, 13, 19, 14, 22, 24, 7, 23, 20, 18, 15, 0, 8, 1, 17, 2, 9]
-rotorII = [0, 9, 3, 10, 18, 8, 17, 20, 23, 1, 12, 7, 22, 19, 12, 2, 16, 6, 25, 13, 15, 24, 5, 21, 14, 4]
+rotorII = [0, 9, 3, 10, 18, 8, 17, 20, 23, 1, 11, 7, 22, 19, 12, 2, 16, 6, 25, 13, 15, 24, 5, 21, 14, 4]
 rotorIII = [1, 3, 5, 7, 9, 11, 2, 15, 17, 19, 23, 21, 25, 13, 24, 4, 8, 22, 6, 0, 10, 12, 20, 18, 16, 14]
 rotorIV = [4, 18, 14, 21, 15, 25, 9, 0, 24, 16, 20, 8, 17, 7, 23, 11, 13, 5, 19, 6, 10, 3, 2, 12, 22, 1]
 rotorV = [21, 25, 1, 17, 6, 8, 19, 24, 20, 15, 18, 3, 13, 7, 11, 23, 0, 22, 12, 9, 16, 14, 5, 4, 2, 10]
@@ -44,7 +44,7 @@ class Enigma:
         self.permutation = [i for i in range (26)]
     
     def choix_rotors(self, alignements_rotors : str):
-        rotors = alignements_rotors.split("-")
+        rotors = alignements_rotors.split(" ")
         assert len(rotors) == 3
         for rotor in rotors:
             for i in range(len(liste_rotor)):
@@ -122,13 +122,17 @@ def traduire_message(enigma : Enigma, message : str):
         traduit += traduire_lettre(enigma, lettre)
     return traduit
 
-def initialiser_enigma(enigma : Enigma, rotors : str, positions : str, liste_permutations = []):
-    liste_positions = positions.split("-")
-    for permutation in liste_permutations:
+def initialiser_enigma(enigma : Enigma, rotors : str, positions : str, liste_permutations):
+    liste_positions = positions.split(" ")
+    permutations = liste_permutations.split(" ")
+    for permutation in permutations:
         enigma.ajouter_permutation(permutation[0], permutation[1])
     enigma.choix_rotors(rotors)
     for i in range(3):
-        enigma.changer_position_rotor(i, lettre_en_nombre(liste_positions[i]))
+        if not liste_positions[0][0].isdigit():
+            enigma.changer_position_rotor(i, lettre_en_nombre(liste_positions[i]))
+        else:
+            enigma.changer_position_rotor(i, int(liste_positions[i]))
     return
 
 reflecteur = input("Choisissez un réflecteur (B / C) : ")
@@ -138,9 +142,10 @@ if reflecteur == "B":
 else:
     enigma1 = Enigma(reflecteurC)
 liste_rotor = [Rotor("I", rotorI, [16]), Rotor("II", rotorII, [4]), Rotor("III", rotorIII, [21]), Rotor("IV", rotorIV, [9]), Rotor("V", rotorV, [25]), Rotor("VI", rotorVI, [25, 12]), Rotor("VII", rotorVII, [25, 12]), Rotor("VIII", rotorVIII, [25, 12])]
-rotors1 = input("Choisissez les rotors (I-VI-III) : ")
-positions1 = input("Choisissez les positions des rotors (T-E-M) : ")
-initialiser_enigma(enigma1, rotors1, positions1, ["AC", "BE"])
+rotors1 = input("Choisissez les rotors (I VI III) : ")
+positions1 = input("Choisissez les positions des rotors (T E M / 20 3 07) : ")
+permutations = input("Choisissez les permutations (AB CT GA): ")
+initialiser_enigma(enigma1, rotors1, positions1, permutations)
 message1 = input("Entrez un message à chiffrer / déchiffrer : ")
 print(traduire_message(enigma1, message1))
 
